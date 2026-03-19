@@ -80,7 +80,7 @@ public class LoginScreen {
         scene = new Scene(root);
     }
 
-    // ── Login Form ────────────────────────────────────────────────────────────
+    // Login Form
 
     // Creates the login form inside a ScrollPane
     // Has role dropdown, username, password with show/hide
@@ -296,7 +296,7 @@ public class LoginScreen {
         return scroll;
     }
 
-    // ── Register Customer Form ────────────────────────────────────────────────
+    // Register Customer Form
 
     // Creates the customer registration form
     // Only customers can register themselves here

@@ -70,7 +70,7 @@ public class AdminDashboard {
         scene = new Scene(root);
     }
 
-    // ── All Requests Tab ──────────────────────────────────────────────────────
+    // All Requests Tab
     @SuppressWarnings("unchecked")
     private VBox buildAllRequestsTab() {
         VBox box = new VBox(12);
@@ -229,7 +229,7 @@ public class AdminDashboard {
         return box;
     }
 
-    // ── Assign Staff Tab ──────────────────────────────────────────────────────
+    // Assign Staff Tab
     private VBox buildAssignTab() {
         VBox form = new VBox(14);
         form.setPadding(new Insets(30));
@@ -342,7 +342,7 @@ public class AdminDashboard {
         return form;
     }
 
-    // ── Create Staff Account Tab ──────────────────────────────────────────────
+    // Create Staff Account Tab
     private VBox buildCreateStaffTab() {
         VBox form = new VBox(14);
         form.setPadding(new Insets(30));
@@ -482,7 +482,7 @@ public class AdminDashboard {
         return form;
     }
 
-    // ── View All Staff Tab ────────────────────────────────────────────────────
+    // View All Staff Tab
     @SuppressWarnings("unchecked")
     private VBox buildViewStaffTab() {
         VBox box = new VBox(12);

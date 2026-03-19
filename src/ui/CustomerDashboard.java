@@ -65,7 +65,7 @@ public class CustomerDashboard {
         scene = new Scene(root);
     }
 
-    // ── Submit Form ───────────────────────────────────────────────────────────
+    // Submit Form
     private VBox buildSubmitForm() {
         VBox form = new VBox(14);
         form.setPadding(new Insets(30));
@@ -221,7 +221,7 @@ public class CustomerDashboard {
         return form;
     }
 
-    // ── My Requests Table ─────────────────────────────────────────────────────
+    // My Requests Table
     @SuppressWarnings("unchecked")
     private VBox buildMyRequestsTable() {
         VBox box = new VBox(12);
@@ -391,7 +391,7 @@ public class CustomerDashboard {
         return box;
     }
 
-    // ── Help Tab ──────────────────────────────────────────────────────────────
+    // Help Tab
     private VBox buildHelpTab() {
         VBox box = new VBox(16);
         box.setPadding(new Insets(30));

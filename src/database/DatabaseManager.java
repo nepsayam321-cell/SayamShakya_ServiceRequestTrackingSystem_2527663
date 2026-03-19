@@ -64,7 +64,7 @@ public class DatabaseManager {
         return connection;
     }
 
-    // ── USER METHODS ──────────────────────────────────────────────────────────
+    // USER METHODS
 
     // Find user by username and password - used for login
     public User findUser(String username, String password) {
@@ -186,7 +186,7 @@ public class DatabaseManager {
         return list;
     }
 
-    // ── SERVICE TYPE METHODS ──────────────────────────────────────────────────
+    // SERVICE TYPE METHODS
 
     // Get all service types from database
     public List<String> getAllServiceTypes() {
@@ -220,7 +220,7 @@ public class DatabaseManager {
         return 1;
     }
 
-    // ── SERVICE CATEGORY METHODS ──────────────────────────────────────────────
+    // ── SERVICE CATEGORY METHODS
 
     // Get all categories from database
     public List<String> getAllCategories() {
@@ -254,7 +254,7 @@ public class DatabaseManager {
         return 1;
     }
 
-    // ── PRIORITY METHODS ──────────────────────────────────────────────────────
+    // ── PRIORITY METHODS
 
     // Get all priorities from database
     public List<String> getAllPriorities() {
@@ -288,7 +288,7 @@ public class DatabaseManager {
         return 1;
     }
 
-    // ── SERVICE REQUEST METHODS ───────────────────────────────────────────────
+    // ── SERVICE REQUEST METHODS
 
     // Save a new service request to the database
     // Uses foreign key IDs for category, service type and priority
@@ -429,7 +429,7 @@ public class DatabaseManager {
         return list;
     }
 
-    // ── HELPER METHODS ────────────────────────────────────────────────────────
+    // HELPER METHODS
 
     // Converts a database row into the correct User subclass
     // Checks the role column to decide which object to create
