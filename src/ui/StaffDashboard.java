@@ -79,7 +79,7 @@ public class StaffDashboard {
         scene = new Scene(root);
     }
 
-    // ── Assigned Requests Tab ─────────────────────────────────────────────────
+    // Assigned Requests Tab
 
     // This tab shows all requests that have been assigned
     // to the currently logged in staff member
@@ -225,7 +225,7 @@ public class StaffDashboard {
         return box;
     }
 
-    // ── Update Request Tab ────────────────────────────────────────────────────
+    // Update Request Tab
 
     // This tab allows staff to update the status of a request
     // Staff enters the request ID and selects a new status
