@@ -29,9 +29,19 @@ public class MainApp extends Application {
         // Show login screen first
         showLoginScreen();
 
-        // show() must come before setMaximized()
+        // Set a default window size so it does not start too small
+        // or fill the whole screen - user can resize freely
+        // setMinWidth and setMinHeight prevent the window from
+        // becoming too small to use the UI properly
+        // centerOnScreen places the window in the middle of the display
+        stage.setWidth(900);
+        stage.setHeight(650);
+        stage.setMinWidth(600);
+        stage.setMinHeight(500);
+        stage.centerOnScreen();
+
+        // show() makes the window visible on screen
         stage.show();
-        stage.setMaximized(true);
     }
 
     // Show the login screen

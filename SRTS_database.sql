@@ -1,8 +1,5 @@
--- Drop and recreate the database fresh
-DROP DATABASE IF EXISTS srts_db;
 CREATE DATABASE srts_db;
 USE srts_db;
-
 -- USERS TABLE
 -- Stores all users: Customers, Staff and Admin
 CREATE TABLE users (
@@ -102,6 +99,7 @@ VALUES
 ALTER TABLE service_requests AUTO_INCREMENT = 2;
 
 -- VERIFY DATA
+USE srts_db;
 SELECT * FROM users;
 SELECT * FROM service_types;
 SELECT * FROM service_categories;

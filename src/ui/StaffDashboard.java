@@ -11,7 +11,6 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import java.util.List;
 
 // StaffDashboard is the main screen for Staff users
 // It has two tabs:
@@ -255,7 +254,7 @@ public class StaffDashboard {
         idField.setPromptText("Enter Request ID  e.g. 1");
         idField.setFont(Font.font("Arial", 13));
 
-        // Status dropdown - only two options available
+        // Status drop down - only two options available
         // In Progress means work has started
         // Completed means the issue has been fully resolved
         ComboBox<String> statusBox = new ComboBox<>();

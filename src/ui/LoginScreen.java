@@ -63,17 +63,11 @@ public class LoginScreen {
             new Tab("Register Customer", buildRegisterForm())
         );
 
-        // Hint at the bottom
-        Label hint = new Label(
-            "Staff accounts are created by the Admin " +
-            "inside the Admin Dashboard.");
-        hint.setFont(Font.font("Arial", 11));
-        hint.setTextFill(Color.GRAY);
-        hint.setWrapText(true);
-        hint.setMaxWidth(480);
+        // Hint label removed - staff account info is already
+        // visible inside the Admin Dashboard where it is relevant
 
         root.getChildren().addAll(
-            title, subtitle, tabPane, hint);
+            title, subtitle, tabPane);
 
         // Scene fills the whole window
         // No fixed size - fills whatever size stage is
@@ -310,18 +304,9 @@ public class LoginScreen {
         heading.setFont(Font.font("Arial", FontWeight.BOLD, 16));
         heading.setTextFill(Color.web("#1E3A5F"));
 
-        // Yellow info box - explains this is for customers only
-        Label infoBox = new Label(
-            "This form is for Customer registration only.\n" +
-            "If you are a Staff member your account will be\n" +
-            "created by the Admin inside the Admin Dashboard.");
-        infoBox.setWrapText(true);
-        infoBox.setFont(Font.font("Arial", 12));
-        infoBox.setTextFill(Color.web("#92400E"));
-        infoBox.setStyle(
-            "-fx-background-color: #FEF3C7;" +
-            "-fx-padding: 10;" +
-            "-fx-background-radius: 6;");
+        // Info box removed - the Register tab is already labelled
+        // "Register Customer" so the extra notice is not needed
+        // Staff account creation is handled inside Admin Dashboard
 
         // Account type locked to Customer - display only
         Label roleDisplay = new Label("Account Type:  Customer");
@@ -471,7 +456,6 @@ public class LoginScreen {
 
         form.getChildren().addAll(
             heading,
-            infoBox,
             roleDisplay,
             new Separator(),
             new Label("Full Name:"),      nameField,

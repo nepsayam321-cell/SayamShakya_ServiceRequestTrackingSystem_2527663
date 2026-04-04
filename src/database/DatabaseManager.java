@@ -32,6 +32,10 @@ public class DatabaseManager {
     }
 
     // Connect to MySQL
+    // setAutoCommit(true) ensures every INSERT and UPDATE is saved
+    // to the database immediately without needing a manual commit
+    // Without this, new users would appear to register successfully
+    // but disappear when the app closes because MySQL never saved them
     public Connection connectDB() {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -39,6 +43,7 @@ public class DatabaseManager {
                 DB_URL + "?useSSL=false&allowPublicKeyRetrieval=true"
                        + "&serverTimezone=UTC",
                 DB_USER, DB_PASS);
+            connection.setAutoCommit(true); // FIX: save every write immediately
             System.out.println("Database connected successfully!");
         } catch (ClassNotFoundException e) {
             System.out.println("MySQL driver not found: " + e.getMessage());
@@ -70,13 +75,12 @@ public class DatabaseManager {
     public User findUser(String username, String password) {
         String sql = "SELECT * FROM users " +
                      "WHERE username = ? AND password = ?";
-        try {
-            PreparedStatement stmt =
-                getConnection().prepareStatement(sql);
+        try (PreparedStatement stmt = getConnection().prepareStatement(sql)) {
             stmt.setString(1, username);
             stmt.setString(2, password);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) return buildUser(rs);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) return buildUser(rs);
+            }
         } catch (SQLException e) {
             System.out.println("Login error: " + e.getMessage());
         }
@@ -86,15 +90,14 @@ public class DatabaseManager {
     // Check if a username already exists
     public boolean usernameExists(String username) {
         String sql = "SELECT userID FROM users WHERE username = ?";
-        try {
-            PreparedStatement stmt =
-                getConnection().prepareStatement(sql);
+        try (PreparedStatement stmt = getConnection().prepareStatement(sql)) {
             stmt.setString(1, username);
-            ResultSet rs = stmt.executeQuery();
-            boolean exists = rs.next();
-            System.out.println("Username check '" + username
-                + "': " + (exists ? "EXISTS" : "available"));
-            return exists;
+            try (ResultSet rs = stmt.executeQuery()) {
+                boolean exists = rs.next();
+                System.out.println("Username check '" + username
+                    + "': " + (exists ? "EXISTS" : "available"));
+                return exists;
+            }
         } catch (SQLException e) {
             System.out.println("Username check error: " + e.getMessage());
         }
@@ -103,14 +106,15 @@ public class DatabaseManager {
 
     // Add a new customer to the database
     // MySQL AUTO_INCREMENT generates the ID automatically
+    // RETURN_GENERATED_KEYS reads the real database ID back into
+    // the Customer object so Java and MySQL stay in sync
     public void addCustomer(Customer customer) {
         String sql = "INSERT INTO users " +
                      "(username, password, fullName, role, " +
                      "contactNumber, address) " +
                      "VALUES (?, ?, ?, 'Customer', ?, ?)";
-        try {
-            PreparedStatement stmt =
-                getConnection().prepareStatement(sql);
+        try (PreparedStatement stmt = getConnection().prepareStatement(
+                sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, customer.getUsername());
             stmt.setString(2, customer.getPassword());
             stmt.setString(3, customer.getFullName());
@@ -119,6 +123,11 @@ public class DatabaseManager {
             int rows = stmt.executeUpdate();
             System.out.println("addCustomer rows affected: " + rows);
             if (rows > 0) {
+                // Read the AUTO_INCREMENT ID that MySQL assigned
+                // and store it back in the Customer object
+                try (ResultSet keys = stmt.getGeneratedKeys()) {
+                    if (keys.next()) customer.setUserID(keys.getInt(1));
+                }
                 System.out.println("New customer saved: "
                     + customer.getFullName());
             } else {
@@ -132,14 +141,15 @@ public class DatabaseManager {
 
     // Add a new staff member - called by Admin only
     // MySQL AUTO_INCREMENT generates the ID automatically
+    // RETURN_GENERATED_KEYS reads the real database ID back into
+    // the Staff object so Java and MySQL stay in sync
     public void addStaff(Staff staff) {
         String sql = "INSERT INTO users " +
                      "(username, password, fullName, role, " +
                      "specialization, availabilityStatus) " +
                      "VALUES (?, ?, ?, 'Staff', ?, TRUE)";
-        try {
-            PreparedStatement stmt =
-                getConnection().prepareStatement(sql);
+        try (PreparedStatement stmt = getConnection().prepareStatement(
+                sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, staff.getUsername());
             stmt.setString(2, staff.getPassword());
             stmt.setString(3, staff.getFullName());
@@ -147,6 +157,11 @@ public class DatabaseManager {
             int rows = stmt.executeUpdate();
             System.out.println("addStaff rows affected: " + rows);
             if (rows > 0) {
+                // Read the AUTO_INCREMENT ID that MySQL assigned
+                // and store it back in the Staff object
+                try (ResultSet keys = stmt.getGeneratedKeys()) {
+                    if (keys.next()) staff.setUserID(keys.getInt(1));
+                }
                 System.out.println("New staff saved: "
                     + staff.getFullName());
             } else {
@@ -162,9 +177,8 @@ public class DatabaseManager {
     public List<Customer> getAllCustomers() {
         List<Customer> list = new ArrayList<>();
         String sql = "SELECT * FROM users WHERE role = 'Customer'";
-        try {
-            Statement stmt = getConnection().createStatement();
-            ResultSet rs   = stmt.executeQuery(sql);
+        try (Statement stmt = getConnection().createStatement();
+             ResultSet rs   = stmt.executeQuery(sql)) {
             while (rs.next()) list.add((Customer) buildUser(rs));
         } catch (SQLException e) {
             System.out.println("Get customers error: " + e.getMessage());
@@ -176,9 +190,8 @@ public class DatabaseManager {
     public List<Staff> getAllStaff() {
         List<Staff> list = new ArrayList<>();
         String sql = "SELECT * FROM users WHERE role = 'Staff'";
-        try {
-            Statement stmt = getConnection().createStatement();
-            ResultSet rs   = stmt.executeQuery(sql);
+        try (Statement stmt = getConnection().createStatement();
+             ResultSet rs   = stmt.executeQuery(sql)) {
             while (rs.next()) list.add((Staff) buildUser(rs));
         } catch (SQLException e) {
             System.out.println("Get staff error: " + e.getMessage());
@@ -192,9 +205,8 @@ public class DatabaseManager {
     public List<String> getAllServiceTypes() {
         List<String> list = new ArrayList<>();
         String sql = "SELECT serviceTypeName FROM service_types";
-        try {
-            Statement stmt = getConnection().createStatement();
-            ResultSet rs   = stmt.executeQuery(sql);
+        try (Statement stmt = getConnection().createStatement();
+             ResultSet rs   = stmt.executeQuery(sql)) {
             while (rs.next()) list.add(rs.getString("serviceTypeName"));
         } catch (SQLException e) {
             System.out.println("Get service types error: "
@@ -207,12 +219,11 @@ public class DatabaseManager {
     private int getServiceTypeID(String serviceTypeName) {
         String sql = "SELECT serviceTypeID FROM service_types "
                    + "WHERE serviceTypeName = ?";
-        try {
-            PreparedStatement stmt =
-                getConnection().prepareStatement(sql);
+        try (PreparedStatement stmt = getConnection().prepareStatement(sql)) {
             stmt.setString(1, serviceTypeName);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) return rs.getInt("serviceTypeID");
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) return rs.getInt("serviceTypeID");
+            }
         } catch (SQLException e) {
             System.out.println("Get service type ID error: "
                 + e.getMessage());
@@ -220,15 +231,14 @@ public class DatabaseManager {
         return 1;
     }
 
-    // ── SERVICE CATEGORY METHODS
+    // SERVICE CATEGORY METHODS
 
     // Get all categories from database
     public List<String> getAllCategories() {
         List<String> list = new ArrayList<>();
         String sql = "SELECT categoryName FROM service_categories";
-        try {
-            Statement stmt = getConnection().createStatement();
-            ResultSet rs   = stmt.executeQuery(sql);
+        try (Statement stmt = getConnection().createStatement();
+             ResultSet rs   = stmt.executeQuery(sql)) {
             while (rs.next()) list.add(rs.getString("categoryName"));
         } catch (SQLException e) {
             System.out.println("Get categories error: "
@@ -241,12 +251,11 @@ public class DatabaseManager {
     private int getCategoryID(String categoryName) {
         String sql = "SELECT categoryID FROM service_categories "
                    + "WHERE categoryName = ?";
-        try {
-            PreparedStatement stmt =
-                getConnection().prepareStatement(sql);
+        try (PreparedStatement stmt = getConnection().prepareStatement(sql)) {
             stmt.setString(1, categoryName);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) return rs.getInt("categoryID");
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) return rs.getInt("categoryID");
+            }
         } catch (SQLException e) {
             System.out.println("Get category ID error: "
                 + e.getMessage());
@@ -254,15 +263,14 @@ public class DatabaseManager {
         return 1;
     }
 
-    // ── PRIORITY METHODS
+    // PRIORITY METHODS
 
     // Get all priorities from database
     public List<String> getAllPriorities() {
         List<String> list = new ArrayList<>();
         String sql = "SELECT priorityName FROM priority_levels";
-        try {
-            Statement stmt = getConnection().createStatement();
-            ResultSet rs   = stmt.executeQuery(sql);
+        try (Statement stmt = getConnection().createStatement();
+             ResultSet rs   = stmt.executeQuery(sql)) {
             while (rs.next()) list.add(rs.getString("priorityName"));
         } catch (SQLException e) {
             System.out.println("Get priorities error: "
@@ -275,12 +283,11 @@ public class DatabaseManager {
     private int getPriorityID(String priorityName) {
         String sql = "SELECT priorityID FROM priority_levels "
                    + "WHERE priorityName = ?";
-        try {
-            PreparedStatement stmt =
-                getConnection().prepareStatement(sql);
+        try (PreparedStatement stmt = getConnection().prepareStatement(sql)) {
             stmt.setString(1, priorityName);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) return rs.getInt("priorityID");
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) return rs.getInt("priorityID");
+            }
         } catch (SQLException e) {
             System.out.println("Get priority ID error: "
                 + e.getMessage());
@@ -288,7 +295,7 @@ public class DatabaseManager {
         return 1;
     }
 
-    // ── SERVICE REQUEST METHODS
+    // SERVICE REQUEST METHODS
 
     // Save a new service request to the database
     // Uses foreign key IDs for category, service type and priority
@@ -298,9 +305,7 @@ public class DatabaseManager {
                      "description, completionRemark, " +
                      "submissionDate, customerID) " +
                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        try {
-            PreparedStatement stmt =
-                getConnection().prepareStatement(sql);
+        try (PreparedStatement stmt = getConnection().prepareStatement(sql)) {
             stmt.setInt   (1, getCategoryID(request.getCategory()));
             stmt.setInt   (2, getServiceTypeID(request.getServiceType()));
             stmt.setInt   (3, getPriorityID(request.getPriority()));
@@ -322,9 +327,7 @@ public class DatabaseManager {
         String sql = "UPDATE service_requests " +
                      "SET status = ?, completionRemark = ?, staffID = ? " +
                      "WHERE requestID = ?";
-        try {
-            PreparedStatement stmt =
-                getConnection().prepareStatement(sql);
+        try (PreparedStatement stmt = getConnection().prepareStatement(sql)) {
             stmt.setString(1, request.getStatus());
             stmt.setString(2, request.getCompletionRemark());
             if (request.getAssignedStaff() != null) {
@@ -354,9 +357,8 @@ public class DatabaseManager {
             "  ON sr.serviceTypeID = st.serviceTypeID " +
             "JOIN priority_levels pl " +
             "  ON sr.priorityID    = pl.priorityID";
-        try {
-            Statement stmt = getConnection().createStatement();
-            ResultSet rs   = stmt.executeQuery(sql);
+        try (Statement stmt = getConnection().createStatement();
+             ResultSet rs   = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 ServiceRequest req = buildRequest(rs);
                 if (req != null) list.add(req);
@@ -383,14 +385,14 @@ public class DatabaseManager {
             "JOIN priority_levels pl " +
             "  ON sr.priorityID    = pl.priorityID " +
             "WHERE sr.customerID = ?";
-        try {
-            PreparedStatement stmt =
-                getConnection().prepareStatement(sql);
+        try (PreparedStatement stmt =
+                getConnection().prepareStatement(sql)) {
             stmt.setInt(1, customer.getUserID());
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                ServiceRequest req = buildRequest(rs);
-                if (req != null) list.add(req);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    ServiceRequest req = buildRequest(rs);
+                    if (req != null) list.add(req);
+                }
             }
         } catch (SQLException e) {
             System.out.println("Get customer requests error: "
@@ -413,14 +415,14 @@ public class DatabaseManager {
             "JOIN priority_levels pl " +
             "  ON sr.priorityID    = pl.priorityID " +
             "WHERE sr.staffID = ?";
-        try {
-            PreparedStatement stmt =
-                getConnection().prepareStatement(sql);
+        try (PreparedStatement stmt =
+                getConnection().prepareStatement(sql)) {
             stmt.setInt(1, staff.getUserID());
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                ServiceRequest req = buildRequest(rs);
-                if (req != null) list.add(req);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    ServiceRequest req = buildRequest(rs);
+                    if (req != null) list.add(req);
+                }
             }
         } catch (SQLException e) {
             System.out.println("Get staff requests error: "
@@ -496,12 +498,12 @@ public class DatabaseManager {
     private Customer findCustomerByID(int id) {
         String sql = "SELECT * FROM users "
                    + "WHERE userID = ? AND role = 'Customer'";
-        try {
-            PreparedStatement stmt =
-                getConnection().prepareStatement(sql);
+        try (PreparedStatement stmt =
+                getConnection().prepareStatement(sql)) {
             stmt.setInt(1, id);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) return (Customer) buildUser(rs);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) return (Customer) buildUser(rs);
+            }
         } catch (SQLException e) {
             System.out.println("Find customer error: "
                 + e.getMessage());
@@ -513,12 +515,12 @@ public class DatabaseManager {
     private Staff findStaffByID(int id) {
         String sql = "SELECT * FROM users "
                    + "WHERE userID = ? AND role = 'Staff'";
-        try {
-            PreparedStatement stmt =
-                getConnection().prepareStatement(sql);
+        try (PreparedStatement stmt =
+                getConnection().prepareStatement(sql)) {
             stmt.setInt(1, id);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) return (Staff) buildUser(rs);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) return (Staff) buildUser(rs);
+            }
         } catch (SQLException e) {
             System.out.println("Find staff error: " + e.getMessage());
         }
